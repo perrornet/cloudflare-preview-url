@@ -21,6 +21,15 @@ async function run() {
     const environment = core.getInput('environment', { required: false })
     const inputHash = core.getInput('commit_hash', { required: false })
     const commitHash = inputHash === '' || inputHash === null ? null : inputHash
+    core.info(`Using Cloudflare API Token: ${cloudflareToken}`)
+    core.info(`Using Cloudflare Account ID: ${accountId}`)
+    core.info(`Using Cloudflare Account Email: ${accountEmail}`)
+    core.info(`Using Cloudflare Project ID: ${projectId}`)
+    core.info(`Using GitHub Repo: ${githubRepo}`)
+    core.info(`Using GitHub Branch: ${githubBranch}`)
+    core.info(`Using Environment: ${environment}`)
+    core.info(`Using Commit Hash: ${commitHash}`)
+    core.info(`Using Wait for Deployment Ready: ${waitForDeploymentReady}`)
 
     core.info(
       `Retrieving deployment preview for ${githubRepo}/${githubBranch} ...`
