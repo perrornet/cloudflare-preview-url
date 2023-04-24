@@ -42,41 +42,28 @@ export default async function getDeploymentUrl(
   core.info(`Found ${data.result.length} deployments`)
   core.debug(`Looking for matching deployments ${repo}/${branch}`)
 
-  const builds = data.result
-    .filter(
-      (d) =>
-        d && d.source && d.source.config && d.source.config.repo_name === repo
-    )
-    .filter(
-      (d) =>
-        d &&
-        d.deployment_trigger &&
-        d.deployment_trigger.metadata.branch === branch
-    )
-    .filter((d) => {
-      if (environment && environment.length > 0) {
-        return d.environment === environment
-      } else {
-        return true
-      }
-    })
-    .filter(
-      (d) =>
-        commitHash === null ||
-        (d.deployment_trigger.metadata !== null &&
-          d.deployment_trigger.metadata.commit_hash === commitHash)
-    )
-
-  core.info(`Found ${builds.length} matching builds`)
-  if (!builds || builds.length <= 0) {
-    core.error(JSON.stringify(builds))
-    throw new Error('no matching builds found')
+  // 循环过滤
+  for (let i = 0; i < data.result.length; i++) {
+    const d = data.result[i]
+    if (!d || !d.source || !d.source.config || d.source.config.repo_name !== repo) {
+      core.info(`Skipping deployment repo ${repo} - ${d.source.config.repo_name}`)
+      continue
+    }
+    if (!d || !d.deployment_trigger || !d.deployment_trigger.metadata || d.deployment_trigger.metadata.branch !== branch) {
+        core.info(`Skipping deployment branch ${branch} - ${d.deployment_trigger.metadata.branch}`)
+      continue
+    }
+    if (environment && environment.length > 0 && d.environment !== environment) {
+        core.info(`Skipping deployment environment ${environment} - ${d.environment}`)
+      continue
+    }
+    if (commitHash !== null && (!d.deployment_trigger.metadata || d.deployment_trigger.metadata.commit_hash !== commitHash)) {
+        core.info(`Skipping deployment commitHash ${commitHash} - ${d.deployment_trigger.metadata.commit_hash}`)
+      continue
+    }
+    core.info(`Preview URL: ${d.url} (${d.latest_stage.name} - ${d.latest_stage.status})`)
+    return d
   }
-
-  const build = builds[0]
-  core.info(
-    `Preview URL: ${build.url} (${build.latest_stage.name} - ${build.latest_stage.status})`
-  )
-
-  return build
+  core.info(`No matching deployments found`)
+  return []
 }

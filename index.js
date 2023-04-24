@@ -12,20 +12,23 @@ async function run() {
     const githubRef =
       core.getInput('branch', { required: false }) || process.env.GITHUB_REF
     const githubProject = process.env.GITHUB_REPOSITORY
-    const githubBranch = githubRef.replace('refs/heads/', '')
+    let githubBranch = githubRef.replace('refs/heads/', '')
     const githubRepo = githubProject.split('/')[1]
     const accountId = process.env.CLOUDFLARE_ACCOUNT_ID
     const accountEmail = process.env.CLOUDFLARE_ACCOUNT_EMAIL
     const projectId = core.getInput('cloudflare_project_id')
     const waitForDeploymentReady = core.getInput('wait_until_ready')
     const environment = core.getInput('environment', { required: false })
+    const inputGithubBranch = core.getInput('branch', { required: false })
     const inputHash = core.getInput('commit_hash', { required: false })
     const commitHash = inputHash === '' || inputHash === null ? null : inputHash
-
     core.info(
-      `Retrieving deployment preview for ${githubRepo}/${githubBranch} ...`
+      `Retrieving deployment preview for ${githubRepo}/${githubBranch}  ${githubRepo} ${githubBranch} ${environment} ${commitHash} ${waitForDeploymentReady}...`
     )
-
+    if (inputGithubBranch) {
+      core.info(`Using input branch: ${inputGithubBranch}`)
+      githubBranch = inputGithubBranch
+    }
     const { id, url } = await getDeploymentUrl(
       cloudflareToken,
       accountId,
